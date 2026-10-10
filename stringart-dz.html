@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>StringArt DZ</title>
+<style>
+:root{--bg:#f6f2ea;--fg:#14171a;--mut:#56606a;--card:#fffdf8;--line:#d9d2c3;--teal:#2b6f7e;--acc:#d9480f;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#101315;--fg:#efe9dc;--mut:#9aa3ab;--card:#181c1f;--line:#2b3238;--teal:#5fb0c2;--acc:#ff8a3d}}
+:root[data-theme="dark"]{--bg:#101315;--fg:#efe9dc;--mut:#9aa3ab;--card:#181c1f;--line:#2b3238;--teal:#5fb0c2;--acc:#ff8a3d}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*:before,*:after{box-sizing:inherit}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif}
+.w{max-width:1000px;margin:0 auto;padding:16px}
+h1{font-size:14px;margin:0 0 6px;color:var(--mut);font-weight:700}
+h2{font-size:28px;line-height:1.1;margin:0 0 8px}
+p{margin:0 0 12px;color:var(--mut)}
+.c{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:12px 0}
+.r{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+label{display:block;font-size:13px;color:var(--mut)}
+input,select{width:100%;min-height:44px;font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:0 10px}
+input[type=range]{padding:0}
+.b{min-height:54px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--fg);font:600 16px system-ui;padding:0 14px;cursor:pointer}
+.b.p{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.b.a{background:var(--acc);border-color:var(--acc);color:#fff}
+.b:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--teal);outline-offset:2px}
+canvas{display:block;max-width:100%}
+.bar{height:8px;border-radius:4px;background:var(--line);overflow:hidden}.bar i{display:block;height:100%;width:0;background:var(--teal)}
+.tag{display:inline-block;font:700 11px system-ui;padding:2px 8px;border-radius:99px;background:var(--acc);color:#fff;margin-left:6px}
+.zm{overflow:auto;border-radius:12px;border:1px solid var(--line);background:#f6f2ea}
+#cv{width:100%;max-width:none;aspect-ratio:1}
+#tp{width:240px;height:240px;border-radius:8px;margin-top:6px}
+.nav{display:grid;grid-template-columns:1fr 1fr 1.4fr;gap:10px;margin:12px 0}
+.big{font-size:22px;font-weight:700}
+pre{white-space:pre-wrap;font:12px/1.5 ui-monospace,monospace;margin:8px 0 0}
+.fs{position:fixed;inset:0;z-index:9;background:var(--bg);overflow:auto}.fs .x{display:none}
+@media(min-width:860px){.g{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(280px,.75fr);gap:24px;align-items:start}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<main id="create" class="w">
+<h1>StringArt DZ</h1>
+<h2>Turn your photo into string art.</h2>
+<p>Upload a photo. Get your nail-by-nail pattern. Photos are processed in your browser and never uploaded. Works best with a close-up face that fills the frame, in good light.</p>
+<div class="c">
+<label>Photo<input id="f" type="file" accept="image/*"></label>
+<div class="r" style="margin-top:10px">
+<label>Mode<select id="md"><option value="portrait" selected>Portrait (face fills the circle)</option><option value="object">Object (white background kept)</option></select></label>
+<label>Detail<select id="fl"><option value="0.3">High detail</option><option value="0.4" selected>Balanced</option><option value="0.5">Smooth</option></select></label>
+<label>Board<select id="sh"><option value="round">Round</option><option value="square">Square</option></select></label>
+<label>Nails (100–300)<input id="nn" type="number" value="180" min="100" max="300"></label>
+<label>Thread steps<input id="ss" type="number" value="4000" min="500" max="6000" step="100"></label>
+<label>Quality<select id="q"><option value="384">Fast (384 px)</option><option value="768" selected>Standard (768 px)</option></select></label>
+<label>Fit<select id="ft"><option value="cover">Cover</option><option value="contain">Contain</option></select></label>
+<label>Contrast<select id="ct"><option value="0,1">Soft</option><option value=".08,.92" selected>Balanced</option><option value=".2,.85">Strong, fades background</option></select></label>
+<label>Thread width (mm)<input id="al" type="number" value="0.15" min="0.1" max="1" step="0.05"></label>
+<label>Zoom<input id="zm" type="range" min="1" max="3" step="0.05" value="1"></label>
+<label>Pan X<input id="px" type="range" min="-1" max="1" step="0.02" value="0"></label>
+<label>Pan Y<input id="py" type="range" min="-1" max="1" step="0.02" value="0"></label>
+</div>
+<p style="margin:10px 0 0">Target the algorithm sees (darker means more thread). Portrait: the face should fill the circle, eyes about a third down; use Zoom and Pan.</p>
+<canvas id="tp"></canvas>
+</div>
+<div class="r"><button class="b p" id="go">Generate</button><button class="b" id="demo">Try demo</button></div>
+<div class="c" id="pg" hidden><div id="stg"></div><div class="bar" style="margin-top:8px"><i id="pb"></i></div><button class="b" id="cx" style="margin-top:8px">Cancel</button></div>
+<div class="c" id="res" hidden>
+<canvas id="pv0" style="width:100%;max-width:420px;margin:0 auto;border-radius:10px;background:#fff"></canvas>
+<p id="met" style="margin:10px 0"></p>
+<button class="b a" id="start" style="width:100%">Start guide →</button>
+</div>
+<div class="c"><button class="b" id="resume" hidden style="width:100%;margin-bottom:10px"></button><button class="b" id="tst" style="width:100%">Run self-tests</button><pre id="log"></pre></div>
+</main>
+
+<main id="guide" class="w" hidden>
+<div class="x" style="margin-bottom:8px"><button class="b" id="back">← Back</button></div>
+<h1>StringArt DZ<span class="tag" id="kind"></span></h1>
+<div class="g">
+<div>
+<div class="zm"><canvas id="cv" width="720" height="720" role="img"></canvas></div>
+<div class="r" style="margin-top:8px"><button class="b" id="zi">Zoom +</button><button class="b" id="zo">Zoom −</button></div>
+</div>
+<div>
+<div class="big" id="st"></div>
+<div class="bar" style="margin:6px 0"><i id="bar"></i></div>
+<p><span id="pc"></span> complete</p>
+<div class="c"><p style="margin:0">Connect</p><div class="big" id="cn"></div><div id="ins" aria-live="polite"></div></div>
+<div class="nav"><button class="b" id="bp">← Previous</button><button class="b" id="br">↻ Replay</button><button class="b a" id="bn">Next →</button></div>
+<p id="nxt"></p><p id="th"></p>
+<div class="r">
+<label>Animation speed<select id="sp"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option></select></label>
+<button class="b" id="vo">🔇 Voice off</button>
+<button class="b" id="ph" hidden>Photo guide: off</button>
+<button class="b" id="fs">Full screen</button>
+</div>
+</div>
+</div>
+</main>
+
+<script>
+const $=s=>document.querySelector(s),W=400,I=8,CP=250,CV=720,K=CV/W,TH='rgba(18,18,18,.3)',ACC='#d9480f',TEAL='#2b6f7e';
+
+/* Pure algorithm module: no DOM, no UI state. Runs on main thread and in the worker. */
+function ALGO(){
+const R4=v=>Math.round(v*1e4)/1e4;
+function nails(sh,N,W,I){const o=[],c=W/2;
+ if(sh==='round'){const r=c-I;for(let i=1;i<=N;i++){const a=-Math.PI/2+2*Math.PI*(i-1)/N;o.push({id:i,x:R4(c+r*Math.cos(a)),y:R4(c+r*Math.sin(a))})}}
+ else{const L=W-2*I,P=4*L;for(let i=1;i<=N;i++){const t=((i-1)*P/N+L/2)%P,e=Math.floor(t/L),u=t-e*L,q=[[I+u,I],[I+L,I+u],[I+L-u,I+L],[I,I+L-u]][e];o.push({id:i,x:R4(q[0]),y:R4(q[1])})}}
+ return o}
+function lineIdx(S,ax,ay,bx,by,out){const n=Math.max(1,Math.ceil(Math.hypot(bx-ax,by-ay)));let k=0,l=-1;
+ for(let i=0;i<=n;i++){const t=i/n,x=Math.round(ax+(bx-ax)*t),y=Math.round(ay+(by-ay)*t);if(x<0||y<0||x>=S||y>=S)continue;const p=y*S+x;if(p!==l){out[k++]=p;l=p}}
+ return k}
+function* generate(o){
+ const {S,N,target:T,alpha:al}=o,sc=S/o.W,G=nails(o.shape,N,o.W,o.I),P=G.map(n=>[n.x*sc,n.y*sc]),b=new Int32Array(S*3),R=new Float32Array(S*S),used=new Uint8Array(N*N),mj=o.minJump*sc,seq=[],Wt=o.weight||new Float32Array(S*S).fill(1),ka=(o.soft==null?.5:o.soft)*al;
+ let cur=(o.start||1)-1,prev=-1;
+ for(let s=0;s<o.steps;s++){let best=-1,bs=1e-6;
+  for(let j=0;j<N;j++){if(j===cur||j===prev||(!o.repeat&&used[cur*N+j]))continue;
+   const a=P[cur],c=P[j];if(Math.hypot(c[0]-a[0],c[1]-a[1])<mj)continue;
+   const k=lineIdx(S,a[0],a[1],c[0],c[1],b);let m=0;
+   if(o.score==='sum')for(let q=0;q<k;q++){const p=b[q];m+=T[p]-R[p]}
+   else for(let q=0;q<k;q++){const p=b[q],u=1-R[p];m+=Wt[p]*u*(2*(T[p]-R[p])-ka*u)}
+   if(m>bs){bs=m;best=j}}
+  if(best<0)break;
+  const a=P[cur],c=P[best],k=lineIdx(S,a[0],a[1],c[0],c[1],b);
+  for(let q=0;q<k;q++){const p=b[q];R[p]+=al*(1-R[p])}
+  seq.push({step:s+1,from:cur+1,to:best+1});used[cur*N+best]=used[best*N+cur]=1;prev=cur;cur=best;
+  if(s%50===49)yield{done:s+1,total:o.steps}}
+ return{sequence:seq,rendered:R}}
+function renderSequence(seq,sh,N,S,W,I,al){const G=nails(sh,N,W,I),sc=S/W,b=new Int32Array(S*3),R=new Float32Array(S*S);
+ for(const s of seq){const a=G[s.from-1],c=G[s.to-1],k=lineIdx(S,a.x*sc,a.y*sc,c.x*sc,c.y*sc,b);for(let q=0;q<k;q++){const p=b[q];R[p]+=al*(1-R[p])}}
+ return R}
+function hash(seq){let h=2166136261;for(const s of seq){h=Math.imul(h^s.from,16777619);h=Math.imul(h^s.to,16777619)}return(h>>>0).toString(16)}
+function validate(p){const e=[],N=p.nails.count;if(!p.sequence.length)e.push('empty sequence');
+ p.sequence.forEach((s,i)=>{if(s.step!==i+1||!(s.from>=1&&s.from<=N&&s.to>=1&&s.to<=N)||s.from===s.to)e.push('bad step '+(i+1))});
+ if(p.nails.positions.length!==N)e.push('nail count mismatch');return e}
+return{nails,lineIdx,generate,renderSequence,hash,validate}}
+const A=ALGO();
+
+/* Image to darkness map (browser-only: needs canvas). Black = 1, white = 0. */
+const PT=()=>$('#md').value==='portrait'&&$('#sh').value==='round',GAMMA=1.6,LC=3,FL=()=>+$('#fl').value||.4;
+function gblur(g,S,s){const r=Math.ceil(3*s),k=new Float32Array(2*r+1);let t=0;for(let i=-r;i<=r;i++)t+=k[i+r]=Math.exp(-i*i/(2*s*s));for(let i=0;i<k.length;i++)k[i]/=t;
+ const a=new Float32Array(S*S),o=new Float32Array(S*S),c=v=>Math.min(S-1,Math.max(0,v));
+ for(let y=0;y<S;y++)for(let x=0;x<S;x++){let v=0;for(let i=-r;i<=r;i++)v+=k[i+r]*g[y*S+c(x+i)];a[y*S+x]=v}
+ for(let y=0;y<S;y++)for(let x=0;x<S;x++){let v=0;for(let i=-r;i<=r;i++)v+=k[i+r]*a[c(y+i)*S+x];o[y*S+x]=v}return o}
+/* Portrait target: local contrast, 2-98 stretch, midtone lift, then floor so the whole circle carries thread. */
+function portraitMap(g,S,inb){const b=gblur(g,S,S/16),h=new Float32Array(S*S),hist=new Uint32Array(256);let n=0;
+ for(let i=0;i<S*S;i++){h[i]=Math.min(1,Math.max(0,g[i]+LC*(g[i]-b[i])));if(inb(i)){hist[Math.round(h[i]*255)]++;n++}}
+ /* One fixed tone curve for every photo (no per-photo stretch). Dark photos only get an exposure lift (median -> .5). */
+ let md=0,c=0;for(;md<255&&(c+=hist[md])<n/2;md++);md=Math.min(.95,Math.max(.05,md/255));const ex=md<.5?Math.log(.5)/Math.log(md):1;
+ const dk=new Float32Array(S*S);for(let i=0;i<S*S;i++)if(inb(i))dk[i]=FL()+(1-FL())*Math.pow(1-Math.min(1,Math.max(0,(Math.pow(Math.max(1e-4,h[i]),ex)-.05)/.9)),GAMMA);return dk}
+function processImage(img,S,fit,zoom,px,py,sh){
+ const c=document.createElement('canvas');c.width=c.height=S;const x=c.getContext('2d',{willReadFrequently:true});
+ x.fillStyle='#fff';x.fillRect(0,0,S,S);
+ const iw=img.naturalWidth||img.width,ih=img.naturalHeight||img.height,s=(fit==='cover'?Math.max:Math.min)(S/iw,S/ih)*zoom,w=iw*s,h=ih*s;
+ x.drawImage(img,(S-w)/2+px*S/2,(S-h)/2+py*S/2,w,h);
+ const d=x.getImageData(0,0,S,S).data,g=new Float32Array(S*S),r=S/2*(W/2-I)/(W/2),hist=new Uint32Array(256);let n=0;
+ const inb=i=>{const X=i%S+.5-S/2,Y=((i/S)|0)+.5-S/2;return sh==='square'||X*X+Y*Y<=r*r};
+ for(let i=0;i<S*S;i++){g[i]=(.299*d[i*4]+.587*d[i*4+1]+.114*d[i*4+2])/255;if(inb(i)){hist[Math.round(g[i]*255)]++;n++}}
+ if(PT()&&sh==='round')return portraitMap(g,S,inb);
+ let lo=0,hi=255,a=0;for(;lo<255&&(a+=hist[lo])<n*.02;lo++);a=0;for(;hi>0&&(a+=hist[hi])<n*.02;hi--);
+ lo/=255;hi/=255;const dk=new Float32Array(S*S);
+ const [c0,c1]=$('#ct').value.split(',').map(Number),sm=v=>{v=Math.min(1,Math.max(0,(v-c0)/(c1-c0)));return .5*v+.5*v*v*(3-2*v)};
+ for(let i=0;i<S*S;i++)if(inb(i))dk[i]=sm(1-Math.min(1,Math.max(0,(g[i]-lo)/Math.max(.05,hi-lo))));
+ return dk}
+function edges(d,S){const e=new Float32Array(S*S),w=new Float32Array(S*S);let mx=1e-6;
+ for(let y=1;y<S-1;y++)for(let x=1;x<S-1;x++){const i=y*S+x,gx=d[i-S+1]+2*d[i+1]+d[i+S+1]-d[i-S-1]-2*d[i-1]-d[i+S-1],gy=d[i+S-1]+2*d[i+S]+d[i+S+1]-d[i-S-1]-2*d[i-S]-d[i-S+1];e[i]=Math.hypot(gx,gy);if(e[i]>mx)mx=e[i]}
+ for(let i=0;i<S*S;i++)w[i]=1+1.5*e[i]/mx;return w}
+function put(c,R,S){c.width=c.height=S;const x=c.getContext('2d'),im=x.createImageData(S,S);
+ for(let i=0;i<S*S;i++){const v=255*(1-Math.min(1,R[i]));im.data[i*4]=im.data[i*4+1]=im.data[i*4+2]=v;im.data[i*4+3]=255}x.putImageData(im,0,0)}
+function demoImg(){const c=document.createElement('canvas');c.width=c.height=400;const x=c.getContext('2d'),g=x.createRadialGradient(150,140,10,200,200,190);
+ g.addColorStop(0,'#fff');g.addColorStop(.7,'#666');g.addColorStop(1,'#111');x.fillStyle='#e6e6e6';x.fillRect(0,0,400,400);x.fillStyle=g;x.beginPath();x.arc(200,200,170,0,7);x.fill();return c}
+
+/* Worker runner. Falls back to chunked main-thread execution if workers are blocked. */
+let cancelRun=null;
+function run(o,f){return new Promise(res=>{let w=null,dead=false;cancelRun=()=>{dead=true;w&&w.terminate();res(null)};
+ const fb=()=>{const it=A.generate(o),st=()=>{if(dead)return;const r=it.next();r.done?res(r.value):(f(r.value),setTimeout(st))};st()};
+ try{w=new Worker(URL.createObjectURL(new Blob(['const A=('+ALGO+')();onmessage=e=>{const it=A.generate(e.data);let r;while(!(r=it.next()).done)postMessage({p:r.value});postMessage({r:r.value})}'],{type:'text/javascript'})));
+  w.onmessage=e=>{if(e.data.p)f(e.data.p);else{w.terminate();res(e.data.r)}};w.onerror=()=>{w.terminate();w=null;fb()};w.postMessage(o)}catch(e){fb()}})}
+
+/* Create flow */
+let img=null,tgt=null,P,step=0,z=1,voice=false,photo=false,speed=1,raf,cache=new Map();
+const cv=$('#cv'),cfg=()=>({shape:$('#sh').value,N:Math.min(300,Math.max(100,+$('#nn').value||250)),steps:Math.min(PT()?4000:6000,Math.max(100,+$('#ss').value||3000)),S:+$('#q').value}),
+ thr=p=>'~'+Math.max(5,Math.round(p.metrics.estimatedThreadLengthM/5)*5)+' m of thread';
+const prev=()=>{const c=cfg();put($('#tp'),processImage(img,c.S,$('#ft').value,+$('#zm').value,+$('#px').value,+$('#py').value,c.shape),c.S)};
+const syncCt=()=>{$('#ct').disabled=PT()};['md','sh'].forEach(i=>$('#'+i).addEventListener('input',syncCt));syncCt();
+['md','fl','sh','q','ft','ct','zm','px','py'].forEach(i=>$('#'+i).addEventListener('input',()=>img&&prev()));
+$('#f').onchange=async e=>{try{img=await createImageBitmap(e.target.files[0]);prev()}catch(x){$('#pg').hidden=false;$('#stg').textContent='Could not read that image. Try a JPG or PNG.'}};
+function build(o,res,kind,im){const G=A.nails(o.shape,o.N,W,I);let mm=0,e=0;
+ for(const s of res.sequence){const a=G[s.from-1],b=G[s.to-1];mm+=Math.hypot(a.x-b.x,a.y-b.y)}
+ for(let i=0;i<o.target.length;i++)e+=Math.abs(o.target[i]-res.rendered[i]);
+ const id=(kind==='demo'?'DEMO-':'')+Array.from(crypto.getRandomValues(new Uint8Array(6)),v=>'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[v%32]).join('');
+ return{id,kind,algorithmVersion:'2.5.0',board:{shape:o.shape,widthMm:W,heightMm:W},nails:{count:o.N,positions:G},
+  settings:{threadSteps:o.steps,lineOpacity:o.alpha,minimumJump:o.minJump,allowRepeatedPair:false,mode:o.score==='sum'?'portrait':'object',scoring:o.score==='sum'?'signed-sum':'soft-L2',floor:o.score==='sum'?FL():0,midtoneLift:o.score==='sum'?GAMMA:1,localContrast:o.score==='sum'?LC:0,threadWidthMm:+$('#al').value||.15,boardMm:W,workingResolution:o.S},sequence:res.sequence,
+  image:{sourceWidth:im.naturalWidth||im.width,sourceHeight:im.naturalHeight||im.height,processedSize:o.S},
+  metrics:{finalError:+(e/o.target.length).toFixed(4),estimatedThreadLengthMm:Math.round(mm*1.1),estimatedThreadLengthM:Math.round(mm*1.1/1000)}}}
+async function gen(kind){
+ const c=cfg(),im=kind==='demo'?demoImg():img,set=(t,f)=>{$('#stg').textContent=t;$('#pb').style.width=f*100+'%'};
+ $('#pg').hidden=false;$('#cx').hidden=false;
+ if(!im){set('Choose a photo first, or try the demo.',0);return}
+ $('#res').hidden=true;set('Preparing image…',0);await new Promise(r=>setTimeout(r));
+ const T=kind==='demo'?processImage(im,c.S,'cover',1,0,0,c.shape):processImage(im,c.S,$('#ft').value,+$('#zm').value,+$('#px').value,+$('#py').value,c.shape);
+ tgt=document.createElement('canvas');put(tgt,T,c.S);
+ const o={...c,W,I,alpha:Math.min(.5,(+$('#al').value||.3)*c.S/W),minJump:W*.08,start:1,target:T,weight:PT()?undefined:edges(T,c.S),score:PT()?'sum':undefined};
+ const res=await run(o,p=>set(`Optimizing sequence… ${p.done} of ${p.total} steps`,p.done/p.total));
+ if(!res){set('Cancelled.',0);$('#cx').hidden=true;return}
+ set('Rendering preview…',1);$('#cx').hidden=true;
+ const pat=build(o,res,kind,im),er=A.validate(pat);
+ if(er.length){set('Validation failed: '+er[0],0);return}
+ P=pat;set(`Done: ${pat.sequence.length} steps generated${pat.sequence.length<o.steps?' (stopped early: no further line improved the match)':''}.`,1);$('#res').hidden=false;
+ {const E=1200,h=E/2,F=A.renderSequence(pat.sequence,pat.board.shape,pat.nails.count,E,W,I,Math.min(.5,pat.settings.threadWidthMm*E/W)),d=new Float32Array(h*h);
+  for(let y=0;y<h;y++)for(let x=0;x<h;x++){const i=2*y*E+2*x;d[y*h+x]=(F[i]+F[i+1]+F[i+E]+F[i+E+1])/4}put($('#pv0'),d,h)}
+ $('#met').innerHTML=`${pat.kind==='demo'?'DEMO':'CUSTOMER PATTERN'} ${pat.id}<br>${pat.sequence.length} thread steps on ${pat.nails.count} nails (a nail is reused many times)<br>${thr(pat)}<br>Remaining error ${pat.metrics.finalError} (lower is better)`}
+$('#cx').onclick=()=>cancelRun&&cancelRun();$('#go').onclick=()=>gen('customer');$('#demo').onclick=()=>gen('demo');$('#start').onclick=()=>open_(P,0);
+
+/* Guide: every pixel comes from P.sequence[step-1]. Checkpoints every CP steps make Previous cheap. */
+const nc=()=>{const c=document.createElement('canvas');c.width=c.height=CV;return c},pos=i=>P.nails.positions[i-1];
+function lines(x,a,b){x.beginPath();for(let i=a;i<b;i++){const s=P.sequence[i],p=pos(s.from),q=pos(s.to);x.moveTo(p.x*K,p.y*K);x.lineTo(q.x*K,q.y*K)}x.stroke()}
+function cp(c){if(cache.has(c))return cache.get(c);const k=nc(),x=k.getContext('2d');if(c>0){x.drawImage(cp(c-CP),0,0);x.strokeStyle=TH;x.lineWidth=.8;lines(x,c-CP,c)}cache.set(c,k);return k}
+function lab(x,n,t,d){const dx=n.x*K-CV/2,dy=n.y*K-CV/2,m=Math.hypot(dx,dy)||1;x.fillText(t,n.x*K+dx/m*d,n.y*K+dy/m*d)}
+function draw(u=1){
+ const x=cv.getContext('2d'),m=Math.max(0,step-1),c0=m-m%CP;
+ x.fillStyle='#f6f2ea';x.fillRect(0,0,CV,CV);
+ if(photo&&tgt){x.globalAlpha=.25;x.drawImage(tgt,0,0,CV,CV);x.globalAlpha=1}
+ x.strokeStyle='#b08968';x.lineWidth=3;x.beginPath();
+ if(P.board.shape==='round')x.arc(CV/2,CV/2,(W/2-I+5)*K,0,7);else x.rect((I-5)*K,(I-5)*K,(W-2*I+10)*K,(W-2*I+10)*K);
+ x.stroke();
+ x.drawImage(cp(c0),0,0);x.strokeStyle=TH;x.lineWidth=.8;lines(x,c0,m);
+ const f=z>=3?1:z>=1.5?5:10;x.fillStyle='#14171a';x.font='9px system-ui';x.textAlign='center';x.textBaseline='middle';
+ for(const n of P.nails.positions){x.beginPath();x.arc(n.x*K,n.y*K,1.8,0,7);x.fill();if(n.id%f===0)lab(x,n,n.id,11)}
+ const s=P.sequence[step-1]||{from:P.sequence[0].from},a=pos(s.from);x.font='bold 16px system-ui';
+ if(step>0){const b=pos(s.to),t=Math.max(0,Math.min(1,u));
+  x.strokeStyle=ACC;x.lineWidth=3.5;x.lineCap='round';x.beginPath();x.moveTo(a.x*K,a.y*K);x.lineTo((a.x+(b.x-a.x)*t)*K,(a.y+(b.y-a.y)*t)*K);x.stroke();
+  x.fillStyle=ACC;x.beginPath();x.arc(b.x*K,b.y*K,8,0,7);x.fill();lab(x,b,s.to,24);
+  if(u>1){const w=Math.min(1,(u-1)/.4);x.globalAlpha=1-w;x.lineWidth=2.5;x.beginPath();x.arc(b.x*K,b.y*K,10+w*18,0,7);x.stroke();x.globalAlpha=1}}
+ x.fillStyle=TEAL;x.beginPath();x.arc(a.x*K,a.y*K,8,0,7);x.fill();lab(x,a,s.from,24)}
+function ui(){const n=P.sequence.length,s=P.sequence[step-1],t=P.sequence[step];
+ $('#st').textContent=`Step ${step} / ${n}`;$('#pc').textContent=Math.round(100*step/n)+'%';$('#bar').style.width=100*step/n+'%';
+ $('#th').textContent='Estimated '+thr(P);$('#nxt').textContent=t?`Next: nail ${t.from} to nail ${t.to}`:'This is the last step.';
+ $('#cn').textContent=s?`Nail ${s.from} → Nail ${s.to}`:'Thread start';
+ $('#ins').textContent=s?(step===1?`Tie the thread to nail ${s.from}, stretch it to nail ${s.to}, and wrap once around it.`:`Wrap once around nail ${s.to}.`):`Tie the thread to nail ${P.sequence[0].from}, then press Next.`;
+ cv.setAttribute('aria-label',s?`Step ${step}. Move thread from nail ${s.from} to nail ${s.to}.`:'Step 0. No thread yet.');
+ try{localStorage.setItem('sadz.s',step)}catch(e){}}
+function speak(){if(!('speechSynthesis' in window)||!step)return;speechSynthesis.cancel();const s=P.sequence[step-1];
+ speechSynthesis.speak(new SpeechSynthesisUtterance(`Step ${step}. Start at nail ${s.from}. Move the thread to nail ${s.to}. Wrap it once around nail ${s.to}.`))}
+function go(n){step=Math.max(0,Math.min(P.sequence.length,n));cancelAnimationFrame(raf);draw();ui();if(voice)speak()}
+function replay(){cancelAnimationFrame(raf);if(!step||matchMedia('(prefers-reduced-motion: reduce)').matches)return draw();
+ const t0=performance.now(),d=1500/speed,f=t=>{const u=(t-t0)/d;draw(u);u<1.4?raf=requestAnimationFrame(f):draw()};raf=requestAnimationFrame(f)}
+function open_(pat,s){P=pat;cache.clear();z=1;cv.style.width='100%';$('#create').hidden=true;$('#guide').hidden=false;
+ $('#kind').textContent=pat.kind==='demo'?'DEMO':'CUSTOMER PATTERN';$('#ph').hidden=!tgt;
+ try{localStorage.setItem('sadz.p',JSON.stringify(pat))}catch(e){}go(s)}
+const zoom=m=>{z=Math.max(1,Math.min(4,z*m));cv.style.width=z*100+'%';draw()};
+$('#bn').onclick=()=>go(step+1);$('#bp').onclick=()=>go(step-1);$('#br').onclick=replay;$('#zi').onclick=()=>zoom(1.5);$('#zo').onclick=()=>zoom(1/1.5);
+$('#sp').onchange=e=>speed=+e.target.value;
+$('#vo').onclick=e=>{voice=!voice;e.target.textContent=voice?'🔊 Voice on':'🔇 Voice off';voice?speak():'speechSynthesis' in window&&speechSynthesis.cancel()};
+$('#ph').onclick=e=>{photo=!photo;e.target.textContent='Photo guide: '+(photo?'on':'off');draw()};
+$('#fs').onclick=()=>{const g=$('#guide');g.classList.toggle('fs');try{g.classList.contains('fs')?g.requestFullscreen&&g.requestFullscreen():document.fullscreenElement&&document.exitFullscreen()}catch(e){}};
+$('#back').onclick=()=>{$('#guide').hidden=true;$('#create').hidden=false};
+onkeydown=e=>{if($('#guide').hidden||/INPUT|SELECT/.test(e.target.tagName))return;if(e.key==='ArrowRight')go(step+1);else if(e.key==='ArrowLeft')go(step-1);else if(e.key==='r')replay()};
+try{const p=JSON.parse(localStorage.getItem('sadz.p')||'null'),s=+localStorage.getItem('sadz.s')||0;
+ if(p&&p.sequence){const b=$('#resume');b.hidden=false;b.textContent=`Resume ${p.id} at step ${s}`;b.onclick=()=>{tgt=null;open_(p,s)}}}catch(e){}
+
+/* Self-tests: geometry, determinism, and that the renderer reproduces the optimizer's canvas exactly. */
+const drive=it=>{let r;while(!(r=it.next()).done);return r.value};
+$('#tst').onclick=()=>{const L=[],ok=(n,c)=>L.push((c?'PASS  ':'FAIL  ')+n),cr=(a,b)=>(a.x-W/2)*(b.y-W/2)-(a.y-W/2)*(b.x-W/2);
+ for(const sh of['round','square'])for(const N of[100,250,300]){const g=A.nails(sh,N,W,I);
+  ok(`${sh} ${N}: ${N} unique positions`,g.length===N&&new Set(g.map(n=>n.x+','+n.y)).size===N);
+  if(sh==='round'){const r=W/2-I;ok(`round ${N}: equal radius`,g.every(n=>Math.abs(Math.hypot(n.x-W/2,n.y-W/2)-r)<1e-3));
+   ok(`round ${N}: nail 1 at top, clockwise`,g[0].x===W/2&&g[0].y<W/2&&g.every((n,i)=>!i||cr(g[i-1],n)>0))}
+  else ok(`square ${N}: all on perimeter`,g.every(n=>[n.x,n.y].some(v=>Math.abs(v-I)<1e-3||Math.abs(v-(W-I))<1e-3)))}
+ const S=128,N=120,T=processImage(demoImg(),S,'cover',1,0,0,'round'),o={shape:'round',N,steps:500,S,W,I,alpha:.05,minJump:W*.08,start:1,target:T};
+ const a=drive(A.generate(o)),b=drive(A.generate(o)),p={nails:{count:N,positions:A.nails('round',N,W,I)},sequence:a.sequence};
+ ok(`same input gives same sequence (hash ${A.hash(a.sequence)})`,A.hash(a.sequence)===A.hash(b.sequence));
+ ok(`sequence valid, ${a.sequence.length} of 500 steps (fewer means early stop)`,A.validate(p).length===0&&a.sequence.length>0);
+ const rr=A.renderSequence(a.sequence,'round',N,S,W,I,.05);
+ ok('renderSequence reproduces optimizer canvas exactly',rr.every((v,i)=>v===a.rendered[i]));
+ {const pm=portraitMap(new Float32Array(S*S).fill(.5),S,i=>true);ok('portrait target never below the floor',pm.every(v=>v>=FL()-1e-6))}
+ ok('nail count changes geometry',A.nails('round',121,W,I)[5].x!==A.nails('round',120,W,I)[5].x);
+ ok('board shape changes geometry',A.nails('square',120,W,I)[5].x!==A.nails('round',120,W,I)[5].x);
+ $('#log').textContent=L.join('\n')};
+</script>
+</body>
+</html>
